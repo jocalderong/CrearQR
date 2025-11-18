@@ -5,7 +5,7 @@
     {% for turno in turnos %}
     <div class="turno-card {% if turno.estado == 'en_atencion' %}en-atencion{% elif turno.estado == 'atendido' %}atendido{% endif %}">
         <div class="turno-codigo">{{ turno.codigo }}</div>
-        <div class="turno-info"><strong>Cliente 2:</strong> {{ turno.cliente_nombre }}</div>
+        <div class="turno-info"><strong>Cliente:</strong> {{ turno.cliente_nombre }}</div>
         <div class="turno-info"><strong>Servicio:</strong> {{ turno.servicio }}</div>
 
         {% if turno.estado == 'pendiente' %}
