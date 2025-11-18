@@ -1,0 +1,104 @@
+{% extends 'App_QR/base.html' %}
+
+{% block title %}Crear Turno{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: bold;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+    
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>📝 Crear Nuevo Turno</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="cliente_nombre">Nombre del Cliente *</label>
+            <input type="text" id="cliente_nombre" name="cliente_nombre" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="cliente_documento">Número de Documento</label>
+            <input type="text" id="cliente_documento" name="cliente_documento">
+        </div>
+        
+        <div class="form-group">
+            <label for="cliente_email">Email</label>
+            <input type="email" id="cliente_email" name="cliente_email">
+        </div>
+        
+        <div class="form-group">
+            <label for="cliente_telefono">Teléfono</label>
+            <input type="tel" id="cliente_telefono" name="cliente_telefono">
+        </div>
+        
+        <div class="form-group">
+            <label for="servicio">Tipo de Servicio *</label>
+            <select id="servicio" name="servicio" required>
+                <option value="" disabled selected>-- Seleccione un servicio --</option>
+                {% for value, display in servicio_choices %}
+                <option value="{{ value }}">{{ display }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" name="observaciones"></textarea>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">Crear Turno</button>
+            <a href="{% url 'home' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

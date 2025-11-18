@@ -1,0 +1,33 @@
+<h2>{{ title }} {% if turnos %}({{ turnos.count }}){% endif %}</h2>
+
+{% if turnos %}
+<div class="turnos-grid">
+    {% for turno in turnos %}
+    <div class="turno-card {% if turno.estado == 'en_atencion' %}en-atencion{% elif turno.estado == 'atendido' %}atendido{% endif %}">
+        <div class="turno-codigo">{{ turno.codigo }}</div>
+        <div class="turno-info"><strong>Cliente 2:</strong> {{ turno.cliente_nombre }}</div>
+        <div class="turno-info"><strong>Servicio:</strong> {{ turno.servicio }}</div>
+
+        {% if turno.estado == 'pendiente' %}
+            <div class="turno-info"><strong>Hora:</strong> {{ turno.fecha_creacion|date:"H:i" }}</div>
+        {% elif turno.estado == 'en_atencion' %}
+            <div class="turno-info"><strong>Atendiendo desde:</strong> {{ turno.fecha_atencion|date:"H:i" }}</div>
+        {% endif %}
+
+        <div class="turno-actions">
+            {% if turno.estado == 'pendiente' %}
+                <a href="{% url 'ver_turno' turno.uuid %}" class="btn btn-secondary">Ver QR</a>
+                <a href="{% url 'cambiar_estado' turno.uuid 'en_atencion' %}" class="btn">Atender</a>
+            {% elif turno.estado == 'en_atencion' %}
+                <a href="{% url 'ver_turno' turno.uuid %}" class="btn btn-secondary">Ver QR</a>
+                <a href="{% url 'cambiar_estado' turno.uuid 'atendido' %}" class="btn btn-success">Finalizar</a>
+            {% elif turno.estado == 'atendido' %}
+                <a href="{% url 'ver_turno' turno.uuid %}" class="btn btn-secondary">Ver Detalles</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">{{ empty_message }}</div>
+{% endif %}

@@ -1,0 +1,39 @@
+{% extends 'App_QR/base.html' %}
+{% block title %}Leer Código QR{% endblock %}
+{% block extra_css %}
+<style>
+#reader { width: 400px; margin: 20px auto; }
+.result-box {background:#f8f9fa;padding:15px;border-radius:8px;margin-top:20px;text-align:center;}
+.result-box code {display:block;margin-top:10px;word-break:break-all;}
+</style>
+{% endblock %}
+{% block content %}
+<h2>📷 Escanear Código QR</h2>
+<p>Permite acceso a la cámara para leer el QR del turno.</p>
+<div id="reader"></div>
+<div class="result-box" id="result" style="display:none;">
+    <strong>Resultado:</strong>
+    <code id="resultText"></code>
+    <a id="goLink" class="btn btn-success" href="#" target="_blank">Ir a la URL</a>
+</div>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+const resultBox = document.getElementById('result');
+const resultText = document.getElementById('resultText');
+const goLink = document.getElementById('goLink');
+function onScanSuccess(decodedText, decodedResult) {
+  resultText.textContent = decodedText;
+  goLink.href = decodedText;
+  resultBox.style.display = 'block';
+  if (decodedText.startsWith('http')) {
+    window.location.href = decodedText;
+  }
+  html5QrcodeScanner.clear();
+}
+function onScanFailure(error) {}
+let html5QrcodeScanner = new Html5QrcodeScanner(
+    'reader', { fps: 10, qrbox: 250 }
+);
+html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+</script>
+{% endblock %}
