@@ -1,0 +1,18 @@
+# Styles for QR reader page
+# container width
+# reader box
+# result box hidden by default
+# result display
+# code wrap
+# button spacing
+# keep minimal JS-driven visibility via class 'hidden'
+#
+# Reader
+# ID `reader` width handled in layout
+#
+# Result box
+.result-box { background:#f8f9fa; padding:15px; border-radius:8px; margin-top:20px; text-align:center; }
+.result-box code { display:block; margin-top:10px; word-break:break-all; }
+.result-box.hidden { display: none; }
+
+#reader { width: 400px; margin: 20px auto; }
