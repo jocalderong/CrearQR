@@ -25,7 +25,13 @@
     <div class="info-grid">
         <div class="info-item">
             <div class="info-label">👤 Cliente</div>
-            <div class="info-value">{{ turno.cliente_nombre }}</div>
+            <div class="info-value">
+                {% if turno.cliente %}
+                    <a href="{% url 'cliente_detail' turno.cliente.pk %}">{{ turno.cliente.nombre }}</a>
+                {% else %}
+                    {{ turno.cliente_nombre }}
+                {% endif %}
+            </div>
         </div>
         
         {% if turno.cliente_email %}

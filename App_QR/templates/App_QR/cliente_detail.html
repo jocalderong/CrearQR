@@ -1,0 +1,18 @@
+{% extends 'App_QR/base.html' %}
+{% load static %}
+{% block title %}Cliente: {{ cliente.nombre }}{% endblock %}
+{% block content %}
+<h2>Cliente: {{ cliente.nombre }}</h2>
+<div style="max-width:700px;">
+    {% if cliente.foto %}
+    <p><img src="{{ cliente.foto.url }}" alt="Foto {{ cliente.nombre }}" style="max-width:220px;border-radius:8px;box-shadow:0 6px 18px rgba(12,22,45,0.08);"/></p>
+    {% endif %}
+    <p><strong>Documento:</strong> {{ cliente.documento }}</p>
+    <p><strong>Email:</strong> {{ cliente.email }}</p>
+    <p><strong>Teléfono:</strong> {{ cliente.telefono }}</p>
+    <p>
+        <a href="{% url 'cliente_update' cliente.pk %}" class="btn">Editar</a>
+        <a href="{% url 'cliente_list' %}" class="btn btn-secondary">Volver</a>
+    </p>
+</div>
+{% endblock %}

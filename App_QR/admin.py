@@ -1,4 +1,12 @@
 from django.contrib import admin
+from .models import Cliente
+
+
+@admin.register(Cliente)
+class ClienteAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'documento', 'email', 'telefono')
+    search_fields = ('nombre', 'documento', 'email')
+
 from .models import Turno
 
 @admin.register(Turno)

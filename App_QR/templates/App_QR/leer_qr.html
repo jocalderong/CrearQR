@@ -5,32 +5,115 @@
 <link rel="stylesheet" href="{% static 'App_QR/css/leer_qr.css' %}">
 {% endblock %}
 {% block content %}
-<h2>📷 Escanear Código QR</h2>
-<p>Permite acceso a la cámara para leer el QR del turno.</p>
-<div id="reader"></div>
-<div class="result-box hidden" id="result">
-    <strong>Resultado:</strong>
-    <code id="resultText"></code>
-    <a id="goLink" class="btn btn-success" href="#" target="_blank">Ir a la URL</a>
+<div class="qr-page">
+  <div class="qr-card">
+    <div class="qr-main">
+      <div class="qr-header">
+        <div>
+          <h2>📷 Escanear Código QR</h2>
+          <p class="lead">Permite acceso a la cámara para leer el QR del turno. Alinea el código dentro del recuadro.</p>
+        </div>
+      </div>
+
+      <div id="reader"></div>
+
+      <p class="hint">Si tu navegador solicita permiso para usar la cámara, acéptalo. Si no funciona, prueba con otro navegador o dispositivo.</p>
+    </div>
+
+    <aside class="qr-aside">
+      <div class="result-box hidden" id="result">
+        <strong>Resultado:</strong>
+        <img id="resultImg" class="result-qr-img" src="" alt="QR result image" style="display:none;" />
+        <code id="resultText"></code>
+        <div class="result-actions">
+          <a id="goLink" class="btn btn-success" href="#" target="_blank" style="display:none;">Ir a la URL</a>
+          <button id="clearBtn" class="btn btn-secondary" type="button">Limpiar</button>
+        </div>
+      </div>
+    </aside>
+  </div>
 </div>
+
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 const resultBox = document.getElementById('result');
 const resultText = document.getElementById('resultText');
 const goLink = document.getElementById('goLink');
-function onScanSuccess(decodedText, decodedResult) {
+const resultImg = document.getElementById('resultImg');
+const clearBtn = document.getElementById('clearBtn');
+const body = document.body;
+
+// modal elements will be created on the fly
+let modalOverlay = null;
+let previewFrame = null;
+
+function showResult(decodedText, dataUrl){
   resultText.textContent = decodedText;
   goLink.href = decodedText;
+  if (decodedText.startsWith('http')) goLink.style.display = 'inline-block';
+  else goLink.style.display = 'none';
+  if (dataUrl){ resultImg.src = dataUrl; resultImg.style.display = 'block'; }
   resultBox.classList.remove('hidden');
-  if (decodedText.startsWith('http')) {
-    window.location.href = decodedText;
-  }
+}
+
+function clearResult(){
+  resultText.textContent = '';
+  goLink.href = '#';
+  resultImg.src = '';
+  resultImg.style.display = 'none';
+  resultBox.classList.add('hidden');
+  html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+}
+
+function onScanSuccess(decodedText, decodedResult) {
+  // Si es una URL interna de turnos, mostrarla en modal (iframe)
+  const isUrl = decodedText.startsWith('http');
+  const looksLikeTurn = decodedText.includes('/turno/') || decodedText.includes('/turno');
   html5QrcodeScanner.clear();
+  if (isUrl && looksLikeTurn) {
+    openPreviewModal(decodedText);
+    return;
+  }
+  let dataUrl = null;
+  showResult(decodedText, dataUrl);
 }
 function onScanFailure(error) {}
-let html5QrcodeScanner = new Html5QrcodeScanner(
-    'reader', { fps: 10, qrbox: 250 }
-);
+
+let html5QrcodeScanner = new Html5QrcodeScanner('reader', { fps: 10, qrbox: 250 });
 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+clearBtn.addEventListener('click', clearResult);
+
+function openPreviewModal(url){
+  // crear overlay si no existe
+  if (!modalOverlay){
+    modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modal-overlay';
+    const card = document.createElement('div'); card.className='modal-card';
+    const header = document.createElement('div'); header.className='modal-header';
+    const h = document.createElement('h3'); h.textContent = 'Previsualizar Turno';
+    const actions = document.createElement('div'); actions.className='modal-actions';
+    const newTab = document.createElement('a'); newTab.className='btn btn-success'; newTab.textContent='Abrir en nueva pestaña'; newTab.target='_blank';
+    const closeBtn = document.createElement('button'); closeBtn.className='btn btn-secondary'; closeBtn.textContent='Cerrar';
+    actions.appendChild(newTab); actions.appendChild(closeBtn);
+    header.appendChild(h); header.appendChild(actions);
+    const iframe = document.createElement('iframe'); iframe.className='modal-frame'; iframe.id='previewFrame';
+    card.appendChild(header); card.appendChild(iframe); modalOverlay.appendChild(card);
+    body.appendChild(modalOverlay);
+    previewFrame = iframe;
+    newTab.href = url;
+    closeBtn.addEventListener('click', ()=>{ closePreviewModal(); });
+  }
+  // set src and show
+  previewFrame.src = url;
+  modalOverlay.classList.remove('hidden');
+}
+
+function closePreviewModal(){
+  if (modalOverlay) modalOverlay.classList.add('hidden');
+  // reiniciar lector
+  html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+}
 </script>
+
 {% endblock %}

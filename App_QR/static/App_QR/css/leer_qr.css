@@ -1,18 +1,112 @@
-# Styles for QR reader page
-# container width
-# reader box
-# result box hidden by default
-# result display
-# code wrap
-# button spacing
-# keep minimal JS-driven visibility via class 'hidden'
-#
-# Reader
-# ID `reader` width handled in layout
-#
-# Result box
-.result-box { background:#f8f9fa; padding:15px; border-radius:8px; margin-top:20px; text-align:center; }
-.result-box code { display:block; margin-top:10px; word-break:break-all; }
+/* Estilos mejorados para la pantalla de lectura de QR */
+
+/* Página */
+.qr-page {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	padding: 30px 20px 60px;
+}
+
+/* Tarjeta central */
+.qr-card {
+	width: 100%;
+	max-width: 880px;
+	background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,250,250,0.95));
+	border-radius: 14px;
+	box-shadow: 0 10px 30px rgba(18, 38, 63, 0.12);
+	padding: 28px;
+	display: grid;
+	grid-template-columns: 1fr 360px;
+	gap: 24px;
+	align-items: start;
+}
+
+/* Columna principal: instrucciones y lector */
+.qr-main {
+	padding: 6px 8px;
+}
+
+.qr-header {
+	display:flex;
+	gap:12px;
+	align-items:center;
+	margin-bottom:12px;
+}
+
+.qr-header h2 { font-size:1.45rem; color:#243248; }
+.qr-header p.lead { color:#556778; margin:0; font-size:0.95rem; }
+
+/* Contenedor del lector */
+#reader {
+	width: 100%;
+	max-width: 620px;
+	height: auto;
+	margin: 18px 0;
+	border-radius: 10px;
+	overflow: hidden;
+	background: #0f1724; /* placeholder while camera loads */
+	display:flex;
+	justify-content:center;
+	align-items:center;
+	min-height:320px;
+}
+
+/* Columna derecha: resultado / acciones */
+.qr-aside {
+	background: #ffffff;
+	border-radius: 10px;
+	padding: 18px;
+	box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+}
+
+.result-box { background:#f8f9fa; padding:18px; border-radius:10px; margin-top:8px; text-align:center; }
+.result-box code { display:block; margin-top:10px; word-break:break-all; color:#0b1220; }
 .result-box.hidden { display: none; }
 
-#reader { width: 400px; margin: 20px auto; }
+.result-qr-img { max-width:180px; margin: 8px auto; border-radius:8px; box-shadow: 0 6px 18px rgba(12,22,45,0.08); }
+
+.result-actions { display:flex; gap:8px; justify-content:center; margin-top:12px; }
+.result-actions .btn { padding:8px 12px; font-size:0.95rem; }
+
+.hint { font-size:0.9rem; color:#6b7a89; margin-top:8px; }
+
+/* Responsive: apilar en pantallas pequeñas */
+@media (max-width: 880px) {
+	.qr-card { grid-template-columns: 1fr; }
+	#reader { min-height:260px; }
+}
+
+/* Modal / preview iframe */
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(6,12,26,0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1200;
+	padding: 24px;
+}
+.modal-card {
+	width: 100%;
+	max-width: 1100px;
+	background: #ffffff;
+	border-radius: 12px;
+	box-shadow: 0 30px 80px rgba(8,20,40,0.35);
+	overflow: hidden;
+}
+.modal-header {
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	padding:12px 18px;
+	border-bottom: 1px solid #f1f3f5;
+}
+.modal-header h3 { margin:0; font-size:1.05rem; color:#0b1220; }
+.modal-actions { display:flex; gap:8px; }
+.modal-frame { width:100%; height:75vh; border:0; display:block; }
+
+/* small helper for hidden state */
+.hidden { display:none !important; }
+

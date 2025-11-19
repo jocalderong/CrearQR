@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
 from .models import Turno
+from .models import Cliente
+from .forms import ClienteForm
 import qrcode
 from io import BytesIO
 import base64
@@ -41,28 +43,72 @@ def home(request):
 
 def crear_turno(request):
     """Vista para crear un nuevo turno"""
+    cliente_prefill = None
     if request.method == 'POST':
-        cliente_nombre = request.POST.get('cliente_nombre')
-        cliente_documento = request.POST.get('cliente_documento')
-        cliente_email = request.POST.get('cliente_email')
-        cliente_telefono = request.POST.get('cliente_telefono')
-        servicio = request.POST.get('servicio')
-        observaciones = request.POST.get('observaciones')
-        
-        turno = Turno.objects.create(
-            cliente_documento=cliente_documento,
-            cliente_nombre=cliente_nombre,
-            cliente_email=cliente_email,
-            cliente_telefono=cliente_telefono,
-            servicio=servicio,
-            observaciones=observaciones
-        )
-        
-        messages.success(request, f'Turno {turno.codigo} creado exitosamente')
-        return redirect('ver_turno', uuid=turno.uuid)
+        # If user clicked Buscar por documento
+        if 'buscar' in request.POST:
+            buscar_documento = (request.POST.get('cliente_documento') or '').strip()
+            if not buscar_documento:
+                messages.error(request, 'Ingrese un número de documento para buscar.')
+            else:
+                # Normalizar y buscar coincidencia exacta (case-insensitive)
+                cliente_obj = Cliente.objects.filter(documento__iexact=buscar_documento).first()
+                # fallback a búsqueda parcial si no hubo exact match
+                if not cliente_obj:
+                    cliente_obj = Cliente.objects.filter(documento__icontains=buscar_documento).first()
+
+                if cliente_obj:
+                    cliente_prefill = {
+                        'id': cliente_obj.pk,
+                        'nombre': cliente_obj.nombre,
+                        'documento': cliente_obj.documento,
+                        'email': cliente_obj.email,
+                        'telefono': cliente_obj.telefono,
+                    }
+                    messages.info(request, f'Cliente encontrado: {cliente_obj.nombre}')
+                else:
+                    messages.error(request, 'Cliente no existe. Por favor verifique el número de documento.')
+
+        # If user clicked Crear Turno
+        elif 'crear' in request.POST:
+            cliente_id = request.POST.get('cliente_id')
+            cliente_nombre = request.POST.get('cliente_nombre')
+            cliente_documento = request.POST.get('cliente_documento')
+            cliente_email = request.POST.get('cliente_email')
+            cliente_telefono = request.POST.get('cliente_telefono')
+            servicio = request.POST.get('servicio')
+            observaciones = request.POST.get('observaciones')
+
+            turno = Turno.objects.create(
+                cliente_documento=cliente_documento,
+                cliente_nombre=cliente_nombre,
+                cliente_email=cliente_email,
+                cliente_telefono=cliente_telefono,
+                servicio=servicio,
+                observaciones=observaciones
+            )
+            # asociar FK cliente si se seleccionó uno
+            if cliente_id:
+                try:
+                    cliente_obj = Cliente.objects.get(pk=int(cliente_id))
+                    turno.cliente = cliente_obj
+                    # opcional: sincronizar campos
+                    turno.cliente_nombre = cliente_obj.nombre
+                    turno.cliente_documento = cliente_obj.documento
+                    turno.cliente_email = cliente_obj.email
+                    turno.cliente_telefono = cliente_obj.telefono
+                    turno.save()
+                except Cliente.DoesNotExist:
+                    pass
+
+            messages.success(request, f'Turno {turno.codigo} creado exitosamente')
+            return redirect('ver_turno', uuid=turno.uuid)
     
+    clientes = Cliente.objects.all().order_by('nombre')
     context = {
-        'servicio_choices': Turno.SERVICIO_CHOICES
+        'servicio_choices': Turno.SERVICIO_CHOICES,
+        'clientes': clientes,
+        'cliente_prefill': cliente_prefill,
     }
     return render(request, 'App_QR/crear_turno.html', context)
 
@@ -133,3 +179,48 @@ def pantalla_publica(request):
 def leer_qr(request):
     """Vista que muestra un lector de QR en el navegador y redirige a la URL escaneada."""
     return render(request, 'App_QR/leer_qr.html')
+
+
+### CRUD Clientes
+def cliente_list(request):
+    clientes = Cliente.objects.all().order_by('nombre')
+    return render(request, 'App_QR/cliente_list.html', {'clientes': clientes})
+
+
+def cliente_detail(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
+    return render(request, 'App_QR/cliente_detail.html', {'cliente': cliente})
+
+
+def cliente_create(request):
+    if request.method == 'POST':
+        form = ClienteForm(request.POST, request.FILES)
+        if form.is_valid():
+            cliente = form.save()
+            messages.success(request, 'Cliente creado correctamente')
+            return redirect('cliente_detail', pk=cliente.pk)
+    else:
+        form = ClienteForm()
+    return render(request, 'App_QR/cliente_form.html', {'form': form})
+
+
+def cliente_update(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
+    if request.method == 'POST':
+        form = ClienteForm(request.POST, request.FILES, instance=cliente)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Cliente actualizado')
+            return redirect('cliente_detail', pk=cliente.pk)
+    else:
+        form = ClienteForm(instance=cliente)
+    return render(request, 'App_QR/cliente_form.html', {'form': form, 'cliente': cliente})
+
+
+def cliente_delete(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
+    if request.method == 'POST':
+        cliente.delete()
+        messages.success(request, 'Cliente eliminado')
+        return redirect('cliente_list')
+    return render(request, 'App_QR/cliente_confirm_delete.html', {'cliente': cliente})

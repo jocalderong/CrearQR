@@ -2,6 +2,21 @@ from django.db import models
 from django.utils import timezone
 import uuid
 
+
+class Cliente(models.Model):
+    nombre = models.CharField(max_length=200)
+    documento = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    telefono = models.CharField(max_length=30, blank=True, null=True)
+    foto = models.ImageField(upload_to='clientes/fotos/', blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Cliente'
+        verbose_name_plural = 'Clientes'
+
+    def __str__(self):
+        return f"{self.nombre} ({self.documento})" if self.documento else self.nombre
+
 class Turno(models.Model):
     ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
@@ -28,6 +43,8 @@ class Turno(models.Model):
     
     codigo = models.CharField(max_length=10, unique=True, editable=False)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    # optional link to Cliente; keep denormalized fields for compatibility
+    cliente = models.ForeignKey(Cliente, blank=True, null=True, on_delete=models.SET_NULL)
     cliente_nombre = models.CharField(max_length=200)
     cliente_documento = models.CharField(max_length=20, blank=True, null=True)
     cliente_email = models.EmailField(blank=True, null=True)
@@ -47,23 +64,30 @@ class Turno(models.Model):
         return f"{self.codigo} - {self.cliente_nombre}"
     
     def save(self, *args, **kwargs):
+        from django.db import IntegrityError, transaction
+
         if not self.codigo:
-            # Generar código de turno consecutivo por servicio y día
+            # Generar código de turno consecutivo por servicio y día.
+            # Intentamos evitar colisiones reintentando si hay conflicto único.
             prefix = self.SERVICIO_PREFIXES.get(self.servicio, 'T')
-            ultimo_turno = Turno.objects.filter(
-                fecha_creacion__date=timezone.now().date(),
-                servicio=self.servicio
-            ).order_by('-id').first()
-            
-            if ultimo_turno and ultimo_turno.codigo:
+
+            # Hacemos varios intentos incrementando el número si se detecta un IntegrityError
+            for attempt in range(5):
+                # base count de turnos existentes hoy para este servicio
+                base = Turno.objects.filter(
+                    fecha_creacion__date=timezone.now().date(),
+                    servicio=self.servicio
+                ).count()
+                numero = base + 1 + attempt
+                self.codigo = f"{prefix}-{numero:03d}"
                 try:
-                    numero = int(ultimo_turno.codigo.split('-')[1]) + 1
-                except:
-                    numero = 1
-            else:
-                numero = 1
-            self.codigo = f"{prefix}-{numero:03d}"
-        
+                    with transaction.atomic():
+                        super().save(*args, **kwargs)
+                    return
+                except IntegrityError:
+                    # intentar siguiente número
+                    continue
+            # Si los reintentos fallaron, hacer un último save y dejar que la excepción suba
         super().save(*args, **kwargs)
     
     def marcar_en_atencion(self):

@@ -117,6 +117,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Allow embedding site pages in iframes from the same origin (needed for QR preview iframe)
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# Media files (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

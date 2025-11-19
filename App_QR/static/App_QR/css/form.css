@@ -44,3 +44,31 @@ textarea {
     gap: 15px;
     margin-top: 30px;
 }
+
+/* Service buttons (radio styled as buttons) */
+.service-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.service-item {
+    display: inline-block;
+}
+.service-radio {
+    display: none;
+}
+.service-btn {
+    display: inline-block;
+    padding: 12px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 600;
+}
+.service-radio:checked + .service-btn,
+.service-btn:active {
+    background: #667eea;
+    border-color: #667eea;
+    color: #fff;
+}

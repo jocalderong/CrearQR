@@ -15,33 +15,58 @@
         {% csrf_token %}
         
         <div class="form-group">
-            <label for="cliente_nombre">Nombre del Cliente *</label>
-            <input type="text" id="cliente_nombre" name="cliente_nombre" required>
+            <label for="cliente_documento">Número de Documento *</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" id="cliente_documento" name="cliente_documento" value="{% if cliente_prefill %}{{ cliente_prefill.documento }}{% else %}{{ request.POST.cliente_documento }}{% endif %}" required>
+                <button type="submit" name="buscar" class="btn" formnovalidate>Buscar</button>
+            </div>
+            <small class="hint">Ingrese el número de documento y presione Buscar para autocompletar desde clientes.</small>
         </div>
-        
+
+        <div style="margin-top:8px;">
+            <label for="cliente_id">Cliente existente (opcional)</label>
+            <select id="cliente_id" name="cliente_id">
+                <option value="">-- Seleccionar cliente --</option>
+                {% for c in clientes %}
+                <option value="{{ c.pk }}" {% if cliente_prefill and cliente_prefill.id == c.pk %}selected{% endif %}>{{ c.nombre }}{% if c.documento %} — {{ c.documento }}{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+
         <div class="form-group">
-            <label for="cliente_documento">Número de Documento</label>
-            <input type="text" id="cliente_documento" name="cliente_documento">
+            <label for="cliente_nombre">Nombre del Cliente *</label>
+            <input type="text" id="cliente_nombre" name="cliente_nombre" value="{% if cliente_prefill %}{{ cliente_prefill.nombre }}{% else %}{{ request.POST.cliente_nombre }}{% endif %}" {% if cliente_prefill %}disabled{% endif %} required>
+            {% if cliente_prefill %}
+            <input type="hidden" name="cliente_nombre" value="{{ cliente_prefill.nombre }}">
+            {% endif %}
         </div>
         
         <div class="form-group">
             <label for="cliente_email">Email</label>
-            <input type="email" id="cliente_email" name="cliente_email">
+            <input type="email" id="cliente_email" name="cliente_email" value="{% if cliente_prefill %}{{ cliente_prefill.email }}{% else %}{{ request.POST.cliente_email }}{% endif %}" {% if cliente_prefill %}disabled{% endif %}>
+            {% if cliente_prefill %}
+            <input type="hidden" name="cliente_email" value="{{ cliente_prefill.email }}">
+            {% endif %}
         </div>
         
         <div class="form-group">
             <label for="cliente_telefono">Teléfono</label>
-            <input type="tel" id="cliente_telefono" name="cliente_telefono">
+            <input type="tel" id="cliente_telefono" name="cliente_telefono" value="{% if cliente_prefill %}{{ cliente_prefill.telefono }}{% else %}{{ request.POST.cliente_telefono }}{% endif %}" {% if cliente_prefill %}disabled{% endif %}>
+            {% if cliente_prefill %}
+            <input type="hidden" name="cliente_telefono" value="{{ cliente_prefill.telefono }}">
+            {% endif %}
         </div>
         
         <div class="form-group">
-            <label for="servicio">Tipo de Servicio *</label>
-            <select id="servicio" name="servicio" required>
-                <option value="" disabled selected>-- Seleccione un servicio --</option>
+            <label>Tipo de Servicio *</label>
+            <div class="service-buttons">
                 {% for value, display in servicio_choices %}
-                <option value="{{ value }}">{{ display }}</option>
+                <div class="service-item">
+                    <input type="radio" id="servicio_{{ forloop.counter }}" name="servicio" value="{{ value }}" class="service-radio" {% if request.POST.servicio == value %}checked{% endif %} required>
+                    <label for="servicio_{{ forloop.counter }}" class="service-btn">{{ display }}</label>
+                </div>
                 {% endfor %}
-            </select>
+            </div>
         </div>
         
         <div class="form-group">
@@ -50,7 +75,7 @@
         </div>
         
         <div class="form-actions">
-            <button type="submit" class="btn btn-success">Crear Turno</button>
+            <button type="submit" name="crear" class="btn btn-success">Crear Turno</button>
             <a href="{% url 'home' %}" class="btn btn-secondary">Cancelar</a>
         </div>
     </form>

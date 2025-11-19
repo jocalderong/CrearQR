@@ -1,0 +1,26 @@
+{% extends 'App_QR/base.html' %}
+{% load static %}
+{% block title %}{% if cliente %}Editar Cliente{% else %}Crear Cliente{% endif %}{% endblock %}
+{% block content %}
+<h2>{% if cliente %}Editar Cliente{% else %}Crear Cliente{% endif %}</h2>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div style="max-width:600px;">
+    {% if cliente and cliente.foto %}
+      <div style="margin-bottom:12px;">
+        <strong>Foto actual:</strong><br>
+        <img src="{{ cliente.foto.url }}" alt="Foto {{ cliente.nombre }}" style="max-width:180px;border-radius:8px;box-shadow:0 6px 18px rgba(12,22,45,0.08);"/>
+      </div>
+    {% endif %}
+    {{ form.as_p }}
+    <div style="margin-top:10px;">
+      <label for="id_foto">Foto cliente (opcional)</label><br>
+      {{ form.foto }}
+    </div>
+    <div style="margin-top:12px;">
+      <button type="submit" class="btn btn-success">Guardar</button>
+      <a href="{% url 'cliente_list' %}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </div>
+</form>
+{% endblock %}
